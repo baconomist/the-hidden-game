@@ -33,6 +33,22 @@ public class @InputMaster : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""Jump"",
+                    ""type"": ""Button"",
+                    ""id"": ""91af2f98-f676-42c3-98de-04ed0add6ac3"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""BoostForward"",
+                    ""type"": ""Button"",
+                    ""id"": ""a51672e7-7541-4c0d-82a6-031e7c9cef86"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -156,6 +172,28 @@ public class @InputMaster : IInputActionCollection, IDisposable
                     ""action"": ""Movement"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d3783260-489a-45c8-ab63-313bcce06188"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5e2c204f-af66-4e5b-b9ea-ea2745d30aac"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""BoostForward"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -183,6 +221,8 @@ public class @InputMaster : IInputActionCollection, IDisposable
         m_FpsController = asset.FindActionMap("FpsController", throwIfNotFound: true);
         m_FpsController_Look = m_FpsController.FindAction("Look", throwIfNotFound: true);
         m_FpsController_Movement = m_FpsController.FindAction("Movement", throwIfNotFound: true);
+        m_FpsController_Jump = m_FpsController.FindAction("Jump", throwIfNotFound: true);
+        m_FpsController_BoostForward = m_FpsController.FindAction("BoostForward", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -234,12 +274,16 @@ public class @InputMaster : IInputActionCollection, IDisposable
     private IFpsControllerActions m_FpsControllerActionsCallbackInterface;
     private readonly InputAction m_FpsController_Look;
     private readonly InputAction m_FpsController_Movement;
+    private readonly InputAction m_FpsController_Jump;
+    private readonly InputAction m_FpsController_BoostForward;
     public struct FpsControllerActions
     {
         private @InputMaster m_Wrapper;
         public FpsControllerActions(@InputMaster wrapper) { m_Wrapper = wrapper; }
         public InputAction @Look => m_Wrapper.m_FpsController_Look;
         public InputAction @Movement => m_Wrapper.m_FpsController_Movement;
+        public InputAction @Jump => m_Wrapper.m_FpsController_Jump;
+        public InputAction @BoostForward => m_Wrapper.m_FpsController_BoostForward;
         public InputActionMap Get() { return m_Wrapper.m_FpsController; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -255,6 +299,12 @@ public class @InputMaster : IInputActionCollection, IDisposable
                 @Movement.started -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnMovement;
                 @Movement.performed -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnMovement;
                 @Movement.canceled -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnMovement;
+                @Jump.started -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnJump;
+                @Jump.performed -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnJump;
+                @Jump.canceled -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnJump;
+                @BoostForward.started -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnBoostForward;
+                @BoostForward.performed -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnBoostForward;
+                @BoostForward.canceled -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnBoostForward;
             }
             m_Wrapper.m_FpsControllerActionsCallbackInterface = instance;
             if (instance != null)
@@ -265,6 +315,12 @@ public class @InputMaster : IInputActionCollection, IDisposable
                 @Movement.started += instance.OnMovement;
                 @Movement.performed += instance.OnMovement;
                 @Movement.canceled += instance.OnMovement;
+                @Jump.started += instance.OnJump;
+                @Jump.performed += instance.OnJump;
+                @Jump.canceled += instance.OnJump;
+                @BoostForward.started += instance.OnBoostForward;
+                @BoostForward.performed += instance.OnBoostForward;
+                @BoostForward.canceled += instance.OnBoostForward;
             }
         }
     }
@@ -282,5 +338,7 @@ public class @InputMaster : IInputActionCollection, IDisposable
     {
         void OnLook(InputAction.CallbackContext context);
         void OnMovement(InputAction.CallbackContext context);
+        void OnJump(InputAction.CallbackContext context);
+        void OnBoostForward(InputAction.CallbackContext context);
     }
 }
