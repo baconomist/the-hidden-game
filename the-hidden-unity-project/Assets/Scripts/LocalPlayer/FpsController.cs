@@ -27,7 +27,10 @@ namespace DefaultNamespace
         public float jumpHeight = 10f;
 
         public bool enableForwardBoost = false;
-        [FormerlySerializedAs("forwardBoostDistance")] public float forwardBoostPower = 50f;
+        public float forwardBoostPower = 50f;
+
+        public bool enableAttachToWalls = false;
+        public float attachWallDistance = 5;
 
         public float gravityScale = 1.0f;
 
@@ -39,10 +42,15 @@ namespace DefaultNamespace
         private Camera _camera;
         private Vector2 _mouseDelta = Vector2.zero;
         private CharacterController _characterController;
+
         private bool _isGrounded = false;
         private bool _forwardBoostReady = false;
+
         private Vector3 _move;
         private Vector3 _velocity;
+
+        private bool _boostKeyHeldDown = false;
+        private bool _isClingingToWall = false;
 
         private void OnEnable()
         {
@@ -57,6 +65,13 @@ namespace DefaultNamespace
             _inputMaster.FpsController.Movement.canceled += (ctx) => StopMovement();
             _inputMaster.FpsController.Jump.performed += (ctx) => Jump();
             _inputMaster.FpsController.BoostForward.performed += (ctx) => BoostForward();
+
+            _inputMaster.FpsController.BoostForward.started += (ctx) => _boostKeyHeldDown = true;
+            _inputMaster.FpsController.BoostForward.canceled += (ctx) =>
+            {
+                _boostKeyHeldDown = false;
+                _isClingingToWall = false;
+            };
         }
 
         private void OnDisable()
@@ -74,9 +89,10 @@ namespace DefaultNamespace
         {
             _isGrounded =
                 Physics.CheckSphere(
-                    transform.position - new Vector3(0, _characterController.height / 2f - _characterController.center.y, 0),
-                    groundDetectionRadius, LayerMask.GetMask("Ground"), QueryTriggerInteraction.Ignore);
-            
+                    transform.position - new Vector3(0,
+                        _characterController.height / 2f - _characterController.center.y, 0),
+                    groundDetectionRadius, LayerMask.GetMask(Layers.Ground), QueryTriggerInteraction.Ignore);
+
             // Boost jump has its own grounding so that player can jump in the air after doing a standard jump
             _forwardBoostReady = _isGrounded;
         }
@@ -100,10 +116,36 @@ namespace DefaultNamespace
                 _move += transform.forward * (Mathf.Sign(movementDirection.z) * movementSpeed);
             }
 
-            ApplyInputs();
+            if (_boostKeyHeldDown && !_isClingingToWall)
+            {
+                Collider[] colliders = Physics.OverlapSphere(transform.position, attachWallDistance,
+                    LayerMask.GetMask(Layers.Collideable));
+                if (colliders.Length > 0)
+                {
+                    foreach (Collider col in colliders)
+                    {
+                        if (col.gameObject.CompareTag(Tags.Wall))
+                        {
+                            _isClingingToWall = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!_isClingingToWall)
+            {
+                ApplyTranslationInputs();
+            }
+            else
+            {
+                // Reset velocity so that once we stop clinging, the player doesn't maintain the previous velocity
+                _velocity = Vector3.zero;
+                _move = Vector3.zero;
+            }
         }
 
-        private void ApplyInputs()
+        private void ApplyTranslationInputs()
         {
             // Multiply by delta time again to apply proper m/s^2 acceleration per frame rather than just 9.8/frame
             _velocity += Physics.gravity * (gravityScale * Time.deltaTime);
@@ -123,6 +165,8 @@ namespace DefaultNamespace
                     Mathf.Lerp(_velocity.y, 0, friction.y * Time.deltaTime),
                     Mathf.Lerp(_velocity.z, 0, friction.z * Time.deltaTime));
             }
+            
+            // Reset movement
             _move = Vector3.zero;
         }
 
@@ -194,7 +238,7 @@ namespace DefaultNamespace
         private void BoostForward()
         {
             CheckYVelocity();
-            
+
             if (enableForwardBoost && _forwardBoostReady)
             {
                 _velocity += _camera.transform.forward * forwardBoostPower;
@@ -208,14 +252,14 @@ namespace DefaultNamespace
         private void JumpToHeight(float height)
         {
             CheckYVelocity();
-            
+
             // vf^2 = vi^2 + 2ad
             // vi = sqrt(vf^2 - 2ad)
             // vi = sqrt(-2ad)
             // vi = sqrt(-2*g*jumpHeight)
             float vi = Mathf.Sqrt(-2 * Physics.gravity.y * gravityScale * height);
             _velocity += new Vector3(0, vi, 0);
-            
+
             _isGrounded = false;
         }
 

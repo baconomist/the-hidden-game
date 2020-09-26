@@ -321,7 +321,7 @@ GameObject:
   - component: {fileID: 820439299}
   - component: {fileID: 820439298}
   m_Layer: 8
-  m_Name: Plane
+  m_Name: Ground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -498,9 +498,9 @@ GameObject:
   - component: {fileID: 1332835889}
   - component: {fileID: 1332835888}
   - component: {fileID: 1332835887}
-  m_Layer: 0
-  m_Name: Cube
-  m_TagString: Untagged
+  m_Layer: 9
+  m_Name: Wall
+  m_TagString: Wall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -573,8 +573,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1332835886}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -15.4, y: -8.9, z: 0}
-  m_LocalScale: {x: 1, y: 44.799, z: 12.557801}
+  m_LocalPosition: {x: -15.4, y: 1.7, z: 0}
+  m_LocalScale: {x: 1, y: 236.51633, z: 12.557801}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
@@ -592,7 +592,7 @@ GameObject:
   - component: {fileID: 1482270054}
   m_Layer: 0
   m_Name: Local Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -616,6 +616,8 @@ MonoBehaviour:
   jumpHeight: 10
   enableForwardBoost: 1
   forwardBoostPower: 100
+  enableAttachToWalls: 0
+  attachWallDistance: 5
   gravityScale: 10
   friction: {x: 10, y: 0, z: 10}
   movementDirection: {x: 0, y: 0, z: 0}
