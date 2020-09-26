@@ -49,8 +49,12 @@ namespace DefaultNamespace
         private Vector3 _move;
         private Vector3 _velocity;
 
+        private bool _boostKeyLetGoWhileOnWall = false;
         private bool _boostKeyHeldDown = false;
         private bool _isClingingToWall = false;
+
+        private const float _wallAttachDebounceTime = 0.25f;
+        private float _wallAttachDebounceTimer = 0;
 
         private void OnEnable()
         {
@@ -60,18 +64,14 @@ namespace DefaultNamespace
             }
 
             _inputMaster.Enable();
-            _inputMaster.FpsController.Look.performed += (ctx) => Look(ctx.ReadValue<Vector2>());
-            _inputMaster.FpsController.Movement.performed += (ctx) => UpdateMovement(ctx.ReadValue<Vector2>());
-            _inputMaster.FpsController.Movement.canceled += (ctx) => StopMovement();
-            _inputMaster.FpsController.Jump.performed += (ctx) => Jump();
-            _inputMaster.FpsController.BoostForward.performed += (ctx) => BoostForward();
+            
+            _inputMaster.FpsController.Look.performed += (ctx) => OnLook(ctx.ReadValue<Vector2>());
+            _inputMaster.FpsController.Movement.performed += (ctx) => OnMovementPerformed(ctx.ReadValue<Vector2>());
+            _inputMaster.FpsController.Movement.canceled += (ctx) => OnMovementCancelled();
+            _inputMaster.FpsController.Jump.performed += (ctx) => OnJump();
 
-            _inputMaster.FpsController.BoostForward.started += (ctx) => _boostKeyHeldDown = true;
-            _inputMaster.FpsController.BoostForward.canceled += (ctx) =>
-            {
-                _boostKeyHeldDown = false;
-                _isClingingToWall = false;
-            };
+            _inputMaster.FpsController.BoostForward.started += (ctx) => OnBoostKeyDown();
+            _inputMaster.FpsController.BoostForward.canceled += (ctx) => OnBoostKeyUp();
         }
 
         private void OnDisable()
@@ -92,9 +92,10 @@ namespace DefaultNamespace
                     transform.position - new Vector3(0,
                         _characterController.height / 2f - _characterController.center.y, 0),
                     groundDetectionRadius, LayerMask.GetMask(Layers.Ground), QueryTriggerInteraction.Ignore);
-
-            // Boost jump has its own grounding so that player can jump in the air after doing a standard jump
-            _forwardBoostReady = _isGrounded;
+            
+            
+            // If on wall, we can boost, otherwise we wait to get grounded
+            _forwardBoostReady = _isGrounded || _isClingingToWall;
         }
 
         private void Update()
@@ -116,7 +117,7 @@ namespace DefaultNamespace
                 _move += transform.forward * (Mathf.Sign(movementDirection.z) * movementSpeed);
             }
 
-            if (_boostKeyHeldDown && !_isClingingToWall)
+            if (_boostKeyHeldDown && !_isClingingToWall && _wallAttachDebounceTimer > _wallAttachDebounceTime)
             {
                 Collider[] colliders = Physics.OverlapSphere(transform.position, attachWallDistance,
                     LayerMask.GetMask(Layers.Collideable));
@@ -136,12 +137,14 @@ namespace DefaultNamespace
             if (!_isClingingToWall)
             {
                 ApplyTranslationInputs();
+                _wallAttachDebounceTimer += Time.deltaTime;
             }
             else
             {
                 // Reset velocity so that once we stop clinging, the player doesn't maintain the previous velocity
                 _velocity = Vector3.zero;
                 _move = Vector3.zero;
+                _wallAttachDebounceTimer = 0;
             }
         }
 
@@ -165,7 +168,7 @@ namespace DefaultNamespace
                     Mathf.Lerp(_velocity.y, 0, friction.y * Time.deltaTime),
                     Mathf.Lerp(_velocity.z, 0, friction.z * Time.deltaTime));
             }
-            
+
             // Reset movement
             _move = Vector3.zero;
         }
@@ -198,21 +201,70 @@ namespace DefaultNamespace
             }
         }
 
-        private void Look(Vector2 mouseDelta)
+        /**
+         * Control Listeners
+         */
+
+        private void OnLook(Vector2 mouseDelta)
         {
             mouseDelta = new Vector2(mouseDelta.x / Screen.width, mouseDelta.y / Screen.height);
 
             _mouseDelta = mouseDelta;
         }
 
-        private void UpdateMovement(Vector2 direction)
+        private void OnMovementPerformed(Vector2 direction)
         {
             movementDirection = new Vector3(direction.x, 0, direction.y);
         }
 
-        private void StopMovement()
+        private void OnMovementCancelled()
         {
             movementDirection = Vector3.zero;
+        }
+
+        private void OnBoostKeyDown()
+        {
+            _boostKeyHeldDown = true;
+            BoostForward();
+            
+            if (_boostKeyLetGoWhileOnWall && _isClingingToWall)
+            {
+                _isClingingToWall = false;
+                _boostKeyLetGoWhileOnWall = false;
+            }
+        }
+
+        private void OnBoostKeyUp()
+        {
+            _boostKeyHeldDown = false;
+            if (!_boostKeyLetGoWhileOnWall && _isClingingToWall)
+            {
+                _boostKeyLetGoWhileOnWall = true;
+            }
+        }
+
+        private void OnJump()
+        {
+            if (_isGrounded)
+            {
+                JumpToHeight(jumpHeight);
+            }
+        }
+
+        /**
+         * END Control Listeners
+         */
+
+        private void BoostForward()
+        {
+            CheckYVelocity();
+
+            if (enableForwardBoost && _forwardBoostReady)
+            {
+                _velocity += _camera.transform.forward * forwardBoostPower;
+                // Jump up a little bit
+                JumpToHeight(1);
+            }
         }
 
         private void LockCursor()
@@ -225,28 +277,6 @@ namespace DefaultNamespace
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
-        }
-
-        private void Jump()
-        {
-            if (_isGrounded)
-            {
-                JumpToHeight(jumpHeight);
-            }
-        }
-
-        private void BoostForward()
-        {
-            CheckYVelocity();
-
-            if (enableForwardBoost && _forwardBoostReady)
-            {
-                _velocity += _camera.transform.forward * forwardBoostPower;
-                // Jump up a little bit
-                JumpToHeight(1);
-            }
-
-            _forwardBoostReady = false;
         }
 
         private void JumpToHeight(float height)
