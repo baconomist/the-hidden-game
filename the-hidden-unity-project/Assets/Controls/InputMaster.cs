@@ -23,7 +23,7 @@ public class @InputMaster : IInputActionCollection, IDisposable
                     ""type"": ""Value"",
                     ""id"": ""4d274356-fbb5-43b5-b1f9-593057c9bb15"",
                     ""expectedControlType"": ""Vector2"",
-                    ""processors"": ""ScaleVector2(x=3000,y=3000)"",
+                    ""processors"": ""ScaleVector2(x=5000,y=5000)"",
                     ""interactions"": """"
                 },
                 {
@@ -196,6 +196,52 @@ public class @InputMaster : IInputActionCollection, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""TheHiddenAttackController"",
+            ""id"": ""13ebb2c5-3aa4-476f-b848-f9ecb7e2576b"",
+            ""actions"": [
+                {
+                    ""name"": ""Primary Attack"",
+                    ""type"": ""Button"",
+                    ""id"": ""f5fbc97b-e0e1-4cdd-954e-8724a54e4bdf"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""Secondary Attack"",
+                    ""type"": ""Button"",
+                    ""id"": ""74b6d608-8c25-45eb-a232-a77ca322f7c4"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""796380ba-465a-481a-a311-d3714bd6e291"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Primary Attack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e75bfcee-3608-4f0a-aff5-176b2e01fd38"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Secondary Attack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -223,6 +269,10 @@ public class @InputMaster : IInputActionCollection, IDisposable
         m_FpsController_Movement = m_FpsController.FindAction("Movement", throwIfNotFound: true);
         m_FpsController_Jump = m_FpsController.FindAction("Jump", throwIfNotFound: true);
         m_FpsController_BoostForward = m_FpsController.FindAction("BoostForward", throwIfNotFound: true);
+        // TheHiddenAttackController
+        m_TheHiddenAttackController = asset.FindActionMap("TheHiddenAttackController", throwIfNotFound: true);
+        m_TheHiddenAttackController_PrimaryAttack = m_TheHiddenAttackController.FindAction("Primary Attack", throwIfNotFound: true);
+        m_TheHiddenAttackController_SecondaryAttack = m_TheHiddenAttackController.FindAction("Secondary Attack", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -325,6 +375,47 @@ public class @InputMaster : IInputActionCollection, IDisposable
         }
     }
     public FpsControllerActions @FpsController => new FpsControllerActions(this);
+
+    // TheHiddenAttackController
+    private readonly InputActionMap m_TheHiddenAttackController;
+    private ITheHiddenAttackControllerActions m_TheHiddenAttackControllerActionsCallbackInterface;
+    private readonly InputAction m_TheHiddenAttackController_PrimaryAttack;
+    private readonly InputAction m_TheHiddenAttackController_SecondaryAttack;
+    public struct TheHiddenAttackControllerActions
+    {
+        private @InputMaster m_Wrapper;
+        public TheHiddenAttackControllerActions(@InputMaster wrapper) { m_Wrapper = wrapper; }
+        public InputAction @PrimaryAttack => m_Wrapper.m_TheHiddenAttackController_PrimaryAttack;
+        public InputAction @SecondaryAttack => m_Wrapper.m_TheHiddenAttackController_SecondaryAttack;
+        public InputActionMap Get() { return m_Wrapper.m_TheHiddenAttackController; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(TheHiddenAttackControllerActions set) { return set.Get(); }
+        public void SetCallbacks(ITheHiddenAttackControllerActions instance)
+        {
+            if (m_Wrapper.m_TheHiddenAttackControllerActionsCallbackInterface != null)
+            {
+                @PrimaryAttack.started -= m_Wrapper.m_TheHiddenAttackControllerActionsCallbackInterface.OnPrimaryAttack;
+                @PrimaryAttack.performed -= m_Wrapper.m_TheHiddenAttackControllerActionsCallbackInterface.OnPrimaryAttack;
+                @PrimaryAttack.canceled -= m_Wrapper.m_TheHiddenAttackControllerActionsCallbackInterface.OnPrimaryAttack;
+                @SecondaryAttack.started -= m_Wrapper.m_TheHiddenAttackControllerActionsCallbackInterface.OnSecondaryAttack;
+                @SecondaryAttack.performed -= m_Wrapper.m_TheHiddenAttackControllerActionsCallbackInterface.OnSecondaryAttack;
+                @SecondaryAttack.canceled -= m_Wrapper.m_TheHiddenAttackControllerActionsCallbackInterface.OnSecondaryAttack;
+            }
+            m_Wrapper.m_TheHiddenAttackControllerActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @PrimaryAttack.started += instance.OnPrimaryAttack;
+                @PrimaryAttack.performed += instance.OnPrimaryAttack;
+                @PrimaryAttack.canceled += instance.OnPrimaryAttack;
+                @SecondaryAttack.started += instance.OnSecondaryAttack;
+                @SecondaryAttack.performed += instance.OnSecondaryAttack;
+                @SecondaryAttack.canceled += instance.OnSecondaryAttack;
+            }
+        }
+    }
+    public TheHiddenAttackControllerActions @TheHiddenAttackController => new TheHiddenAttackControllerActions(this);
     private int m_KeyboardandMouseSchemeIndex = -1;
     public InputControlScheme KeyboardandMouseScheme
     {
@@ -340,5 +431,10 @@ public class @InputMaster : IInputActionCollection, IDisposable
         void OnMovement(InputAction.CallbackContext context);
         void OnJump(InputAction.CallbackContext context);
         void OnBoostForward(InputAction.CallbackContext context);
+    }
+    public interface ITheHiddenAttackControllerActions
+    {
+        void OnPrimaryAttack(InputAction.CallbackContext context);
+        void OnSecondaryAttack(InputAction.CallbackContext context);
     }
 }
