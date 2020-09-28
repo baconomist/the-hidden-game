@@ -56,6 +56,8 @@ namespace DefaultNamespace
         private const float _wallAttachDebounceTime = 0.25f;
         private float _wallAttachDebounceTimer = 0;
 
+        private int _wallAttachCountSinceGround = 0;
+
         private void OnEnable()
         {
             if (_inputMaster == null)
@@ -92,6 +94,9 @@ namespace DefaultNamespace
                     transform.position - new Vector3(0,
                         _characterController.height / 2f - _characterController.center.y, 0),
                     groundDetectionRadius, LayerMask.GetMask(Layers.Ground), QueryTriggerInteraction.Ignore);
+
+            if (_isGrounded)
+                _wallAttachCountSinceGround = 0;
             
             
             // If on wall, we can boost, otherwise we wait to get grounded
@@ -116,26 +121,31 @@ namespace DefaultNamespace
             {
                 _move += transform.forward * (Mathf.Sign(movementDirection.z) * movementSpeed);
             }
-
-            if (_boostKeyHeldDown && !_isClingingToWall && _wallAttachDebounceTimer > _wallAttachDebounceTime)
-            {
-                Collider[] colliders = Physics.OverlapSphere(transform.position, attachWallDistance,
-                    LayerMask.GetMask(Layers.Collideable));
-                if (colliders.Length > 0)
-                {
-                    foreach (Collider col in colliders)
-                    {
-                        if (col.gameObject.CompareTag(Tags.Wall))
-                        {
-                            _isClingingToWall = true;
-                            break;
-                        }
-                    }
-                }
-            }
+            
 
             if (!_isClingingToWall)
             {
+                // Try to cling to a wall
+                // Can only attach to wall once per jump off ground and when holding shift key down
+                // Also give a debounce delay to give the player a chance to detach from wall
+                if (_wallAttachCountSinceGround < 1 && _boostKeyHeldDown && _wallAttachDebounceTimer > _wallAttachDebounceTime)
+                {
+                    Collider[] colliders = Physics.OverlapSphere(transform.position, attachWallDistance,
+                        LayerMask.GetMask(Layers.Collideable));
+                    if (colliders.Length > 0)
+                    {
+                        foreach (Collider col in colliders)
+                        {
+                            if (col.gameObject.CompareTag(Tags.Wall))
+                            {
+                                _isClingingToWall = true;
+                                _wallAttachCountSinceGround++;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
                 ApplyTranslationInputs();
                 _wallAttachDebounceTimer += Time.deltaTime;
             }
