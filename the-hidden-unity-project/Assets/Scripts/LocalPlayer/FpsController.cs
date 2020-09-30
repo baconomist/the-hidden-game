@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using Game;
+using Mirror;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -17,7 +18,7 @@ namespace DefaultNamespace
     // Mouse click after pressing escape will lock the mouse again
 
     [RequireComponent(typeof(CharacterController))]
-    public class FpsController : MonoBehaviour
+    public class FpsController : NetworkBehaviour
     {
         public float groundDetectionRadius = 1;
         public bool lockCursor = true;
@@ -38,7 +39,18 @@ namespace DefaultNamespace
 
         [HideInInspector] public Vector3 movementDirection = Vector3.zero;
 
-        private InputMaster _inputMaster;
+        private InputMaster _inputMasterInstance;
+
+        private InputMaster _inputMaster
+        {
+            get
+            {
+                if (_inputMasterInstance == null)
+                    _inputMasterInstance = new InputMaster();
+                return _inputMasterInstance;
+            }
+        }
+
         private Camera _camera;
         private Vector2 _mouseDelta = Vector2.zero;
         private CharacterController _characterController;
@@ -58,15 +70,18 @@ namespace DefaultNamespace
 
         private int _wallAttachCountSinceGround = 0;
 
-        private void OnEnable()
+        public override void OnStartAuthority()
         {
-            if (_inputMaster == null)
-            {
-                _inputMaster = new InputMaster();
-            }
+            base.OnStartAuthority();
+
+            foreach(Camera cam in GetComponentsInChildren<Camera>())
+                if (cam.CompareTag(Tags.MainCamera))
+                    _camera = cam;
+            
+            _characterController = GetComponent<CharacterController>();
 
             _inputMaster.Enable();
-            
+
             _inputMaster.FpsController.Look.performed += (ctx) => OnLook(ctx.ReadValue<Vector2>());
             _inputMaster.FpsController.Movement.performed += (ctx) => OnMovementPerformed(ctx.ReadValue<Vector2>());
             _inputMaster.FpsController.Movement.canceled += (ctx) => OnMovementCancelled();
@@ -76,17 +91,14 @@ namespace DefaultNamespace
             _inputMaster.FpsController.BoostForward.canceled += (ctx) => OnBoostKeyUp();
         }
 
-        private void OnDisable()
+        [Client]
+        public void OnDisable()
         {
-            _inputMaster?.Disable();
+            if (isLocalPlayer)
+                _inputMaster?.Disable();
         }
 
-        private void Awake()
-        {
-            _camera = Camera.main;
-            _characterController = GetComponent<CharacterController>();
-        }
-
+        [Client]
         private void CheckState()
         {
             _isGrounded =
@@ -97,67 +109,80 @@ namespace DefaultNamespace
 
             if (_isGrounded)
                 _wallAttachCountSinceGround = 0;
-            
-            
+
+
             // If on wall, we can boost, otherwise we wait to get grounded
             _forwardBoostReady = _isGrounded || _isClingingToWall;
         }
 
+        [Client]
         private void Update()
         {
-            CheckState();
-
-            if (lockCursor)
-                LockCursor();
+            if (!isLocalPlayer)
+            {
+                foreach (Camera cam in GetComponentsInChildren<Camera>())
+                    cam.enabled = false;
+                foreach (AudioListener audioListener in GetComponentsInChildren<AudioListener>())
+                    audioListener.enabled = false;
+            }
             else
-                UnlockCursor();
-
-            if (Mathf.Abs(movementDirection.x) > 0 && Mathf.Abs(_velocity.x) < movementSpeed)
             {
-                _move += transform.right * (Mathf.Sign(movementDirection.x) * movementSpeed);
-            }
+                CheckState();
 
-            if (Mathf.Abs(movementDirection.z) > 0 && Mathf.Abs(_velocity.z) < movementSpeed)
-            {
-                _move += transform.forward * (Mathf.Sign(movementDirection.z) * movementSpeed);
-            }
-            
+                if (lockCursor)
+                    LockCursor();
+                else
+                    UnlockCursor();
 
-            if (!_isClingingToWall)
-            {
-                // Try to cling to a wall
-                // Can only attach to wall once per jump off ground and when holding shift key down
-                // Also give a debounce delay to give the player a chance to detach from wall
-                if (_wallAttachCountSinceGround < 1 && _boostKeyHeldDown && _wallAttachDebounceTimer > _wallAttachDebounceTime)
+                if (Mathf.Abs(movementDirection.x) > 0 && Mathf.Abs(_velocity.x) < movementSpeed)
                 {
-                    Collider[] colliders = Physics.OverlapSphere(transform.position, attachWallDistance,
-                        LayerMask.GetMask(Layers.Collideable));
-                    if (colliders.Length > 0)
+                    _move += transform.right * (Mathf.Sign(movementDirection.x) * movementSpeed);
+                }
+
+                if (Mathf.Abs(movementDirection.z) > 0 && Mathf.Abs(_velocity.z) < movementSpeed)
+                {
+                    _move += transform.forward * (Mathf.Sign(movementDirection.z) * movementSpeed);
+                }
+
+
+                if (!_isClingingToWall)
+                {
+                    // Try to cling to a wall
+                    // Can only attach to wall once per jump off ground and when holding shift key down
+                    // Also give a debounce delay to give the player a chance to detach from wall
+                    if (_wallAttachCountSinceGround < 1 && _boostKeyHeldDown &&
+                        _wallAttachDebounceTimer > _wallAttachDebounceTime)
                     {
-                        foreach (Collider col in colliders)
+                        Collider[] colliders = Physics.OverlapSphere(transform.position, attachWallDistance,
+                            LayerMask.GetMask(Layers.Collideable));
+                        if (colliders.Length > 0)
                         {
-                            if (col.gameObject.CompareTag(Tags.Wall))
+                            foreach (Collider col in colliders)
                             {
-                                _isClingingToWall = true;
-                                _wallAttachCountSinceGround++;
-                                break;
+                                if (col.gameObject.CompareTag(Tags.Wall))
+                                {
+                                    _isClingingToWall = true;
+                                    _wallAttachCountSinceGround++;
+                                    break;
+                                }
                             }
                         }
                     }
+
+                    ApplyTranslationInputs();
+                    _wallAttachDebounceTimer += Time.deltaTime;
                 }
-                
-                ApplyTranslationInputs();
-                _wallAttachDebounceTimer += Time.deltaTime;
-            }
-            else
-            {
-                // Reset velocity so that once we stop clinging, the player doesn't maintain the previous velocity
-                _velocity = Vector3.zero;
-                _move = Vector3.zero;
-                _wallAttachDebounceTimer = 0;
+                else
+                {
+                    // Reset velocity so that once we stop clinging, the player doesn't maintain the previous velocity
+                    _velocity = Vector3.zero;
+                    _move = Vector3.zero;
+                    _wallAttachDebounceTimer = 0;
+                }
             }
         }
 
+        [Client]
         private void ApplyTranslationInputs()
         {
             // Multiply by delta time again to apply proper m/s^2 acceleration per frame rather than just 9.8/frame
@@ -183,8 +208,11 @@ namespace DefaultNamespace
             _move = Vector3.zero;
         }
 
+        [Client]
         private void FixedUpdate()
         {
+            if (!isLocalPlayer) return;
+
             if (_mouseDelta.sqrMagnitude > 0.1f)
             {
                 // Vertical Rotation
@@ -214,7 +242,7 @@ namespace DefaultNamespace
         /**
          * Control Listeners
          */
-
+        [Client]
         private void OnLook(Vector2 mouseDelta)
         {
             mouseDelta = new Vector2(mouseDelta.x / Screen.width, mouseDelta.y / Screen.height);
@@ -222,21 +250,24 @@ namespace DefaultNamespace
             _mouseDelta = mouseDelta;
         }
 
+        [Client]
         private void OnMovementPerformed(Vector2 direction)
         {
             movementDirection = new Vector3(direction.x, 0, direction.y);
         }
 
+        [Client]
         private void OnMovementCancelled()
         {
             movementDirection = Vector3.zero;
         }
 
+        [Client]
         private void OnBoostKeyDown()
         {
             _boostKeyHeldDown = true;
             BoostForward();
-            
+
             if (_boostKeyLetGoWhileOnWall && _isClingingToWall)
             {
                 _isClingingToWall = false;
@@ -244,6 +275,7 @@ namespace DefaultNamespace
             }
         }
 
+        [Client]
         private void OnBoostKeyUp()
         {
             _boostKeyHeldDown = false;
@@ -253,6 +285,7 @@ namespace DefaultNamespace
             }
         }
 
+        [Client]
         private void OnJump()
         {
             if (_isGrounded)
@@ -264,7 +297,7 @@ namespace DefaultNamespace
         /**
          * END Control Listeners
          */
-
+        [Client]
         private void BoostForward()
         {
             CheckYVelocity();
@@ -277,18 +310,21 @@ namespace DefaultNamespace
             }
         }
 
+        [Client]
         private void LockCursor()
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
 
+        [Client]
         private void UnlockCursor()
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
 
+        [Client]
         private void JumpToHeight(float height)
         {
             CheckYVelocity();
@@ -303,6 +339,7 @@ namespace DefaultNamespace
             _isGrounded = false;
         }
 
+        [Client]
         private void CheckYVelocity()
         {
             // Reset y velocity if is grounded

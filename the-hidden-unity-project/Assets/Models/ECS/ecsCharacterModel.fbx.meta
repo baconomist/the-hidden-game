@@ -1,17 +1,14 @@
 fileFormatVersion: 2
-guid: 99e5fd679e581c04d9be3afdc43187e0
+guid: db987000123182e40a25783c8e611170
 ModelImporter:
   serializedVersion: 19301
   internalIDToNameTable:
   - first:
-      74: -7828563165071535415
-    second: The Hidden | Idle
+      74: 2667129109135888315
+    second: EcsBody|EcsBodyAction.001
   - first:
-      74: -1432093072099223760
-    second: The Hidden | Primary Attack
-  - first:
-      74: 3971412263066827745
-    second: The Hidden | Secondary Attack
+      74: -4405717314339291906
+    second: ECS | Primary Attack
   externalObjects: {}
   materials:
     materialImportMode: 1
@@ -41,40 +38,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: The Hidden | Idle
-      takeName: Arms|ArmsAction
+      name: EcsBody|EcsBodyAction.001
+      takeName: EcsBody|EcsBodyAction.001
       internalID: 0
       firstFrame: 0
-      lastFrame: 48
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
-    - serializedVersion: 16
-      name: The Hidden | Primary Attack
-      takeName: Arms|ArmsAction
-      internalID: 0
-      firstFrame: 50
-      lastFrame: 72
+      lastFrame: 150
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -99,11 +67,11 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: The Hidden | Secondary Attack
-      takeName: Arms|ArmsAction
+      name: ECS | Primary Attack
+      takeName: EcsBody|EcsBodyAction.001
       internalID: 0
-      firstFrame: 80
-      lastFrame: 120
+      firstFrame: 23
+      lastFrame: 50
       wrapMode: 0
       orientationOffsetY: 0
       level: 0

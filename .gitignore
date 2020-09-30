@@ -82,5 +82,7 @@ crashlytics-build.properties
 
 
 Examples/
+ScriptTemplates/
+ScriptTemplates.meta
 Build/
 *_clone_*/

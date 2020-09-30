@@ -4,5 +4,6 @@ namespace Game
     {
         public static string Player = "Player";
         public static string Wall = "Wall";
+        public static string MainCamera = "MainCamera";
     }
 }
