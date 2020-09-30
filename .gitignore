@@ -5,15 +5,9 @@ Temp/
 Library/
 *.import
 
-robojumper-project/.idea/.idea.robojumper-project/.idea/workspace.xml
-
-robojumper-project/Assembly-CSharp.csproj
-
 *.dll
 
 *.cache
-
-robojumper-project/.idea/.idea.robojumper-project/.idea/contentModel.xml
 
 *.log
 
@@ -82,18 +76,11 @@ crashlytics-build.properties
 
 *.pek
 
-raw-assets/3dplayer_IGNORE/player/4b08ae338ae6f99d66c6b8bfccbd67c9.jpg
 
-raw-assets/3dplayer_IGNORE/player/BTSM-E02261-062619-S20-000.jpg
+.idea/workspace.xml
+.idea/contentModel.xml
 
-raw-assets/3dplayer_IGNORE/player/Player.blend
 
-raw-assets/3dplayer_IGNORE/player/Player.blend1
-
-wick-john-unity-project/Assets/Lib/
-
-wick-john-unity-project/Assets/Spine/
-
-the-hidden-unity-project/.idea/.idea.the-hidden-unity-project/.idea/workspace.xml
-
-the-hidden-unity-project/.idea/.idea.the-hidden-unity-project/.idea/contentModel.xml
+Examples/
+Build/
+*_clone_*/
