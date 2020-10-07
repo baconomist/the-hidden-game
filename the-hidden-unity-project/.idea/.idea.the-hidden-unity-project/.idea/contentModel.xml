@@ -387,22 +387,15 @@
           <e p="LocalPlayer" t="Include">
             <e p="AnimatorController.cs" t="Include" />
             <e p="FpsCameraController.cs" t="Include" />
+            <e p="FpsControllerState.cs" t="Include" />
             <e p="FpsMovementController.cs" t="Include" />
             <e p="NetworkModelManager.cs" t="Include" />
             <e p="TheHiddenAnimatorController.cs" t="Include" />
+            <e p="TheHiddenFpsController.cs" t="Include" />
           </e>
           <e p="Test" t="Include">
             <e p="TestNetworkPlayer.cs" t="Include" />
           </e>
-        </e>
-        <e p="ScriptTemplates" t="Include">
-          <e p="50-Mirror__Network Manager-NewNetworkManager.cs.txt" t="Include" />
-          <e p="51-Mirror__Network Authenticator-NewNetworkAuthenticator.cs.txt" t="Include" />
-          <e p="52-Mirror__Network Behaviour-NewNetworkBehaviour.cs.txt" t="Include" />
-          <e p="53-Mirror__Network Observer-NewNetworkObserver.cs.txt" t="Include" />
-          <e p="54-Mirror__Network Room Manager-NewNetworkRoomManager.cs.txt" t="Include" />
-          <e p="55-Mirror__Network Room Player-NewNetworkRoomPlayer.cs.txt" t="Include" />
-          <e p="56-Mirror__Network Discovery-NewNetworkDiscovery.cs.txt" t="Include" />
         </e>
       </e>
       <e p="Mirror.Authenticators.csproj" t="IncludeRecursive" />
