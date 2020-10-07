@@ -18,11 +18,9 @@ namespace DefaultNamespace
     // Mouse click after pressing escape will lock the mouse again
 
     [RequireComponent(typeof(CharacterController))]
-    public class FpsController : NetworkBehaviour
+    public class FpsMovementController : NetworkBehaviour
     {
         public float groundDetectionRadius = 1;
-        public bool lockCursor = true;
-        public Vector2 verticalRotBounds = new Vector2(40, 270);
 
         public float movementSpeed = 2f;
         public float jumpHeight = 10f;
@@ -50,9 +48,7 @@ namespace DefaultNamespace
                 return _inputMasterInstance;
             }
         }
-
-        private Camera _camera;
-        private Vector2 _mouseDelta = Vector2.zero;
+        
         private CharacterController _characterController;
 
         private bool _isGrounded = false;
@@ -65,6 +61,8 @@ namespace DefaultNamespace
         private bool _boostKeyHeldDown = false;
         private bool _isClingingToWall = false;
 
+        private Camera _camera;
+
         private const float _wallAttachDebounceTime = 0.25f;
         private float _wallAttachDebounceTimer = 0;
 
@@ -74,15 +72,14 @@ namespace DefaultNamespace
         {
             base.OnStartAuthority();
 
-            foreach(Camera cam in GetComponentsInChildren<Camera>())
+            _characterController = GetComponent<CharacterController>();
+
+            foreach (Camera cam in GetComponentsInChildren<Camera>())
                 if (cam.CompareTag(Tags.MainCamera))
                     _camera = cam;
             
-            _characterController = GetComponent<CharacterController>();
-
             _inputMaster.Enable();
-
-            _inputMaster.FpsController.Look.performed += (ctx) => OnLook(ctx.ReadValue<Vector2>());
+            
             _inputMaster.FpsController.Movement.performed += (ctx) => OnMovementPerformed(ctx.ReadValue<Vector2>());
             _inputMaster.FpsController.Movement.canceled += (ctx) => OnMovementCancelled();
             _inputMaster.FpsController.Jump.performed += (ctx) => OnJump();
@@ -118,21 +115,9 @@ namespace DefaultNamespace
         [Client]
         private void Update()
         {
-            if (!isLocalPlayer)
-            {
-                foreach (Camera cam in GetComponentsInChildren<Camera>())
-                    cam.enabled = false;
-                foreach (AudioListener audioListener in GetComponentsInChildren<AudioListener>())
-                    audioListener.enabled = false;
-            }
-            else
+            if(isLocalPlayer)
             {
                 CheckState();
-
-                if (lockCursor)
-                    LockCursor();
-                else
-                    UnlockCursor();
 
                 if (Mathf.Abs(movementDirection.x) > 0 && Mathf.Abs(_velocity.x) < movementSpeed)
                 {
@@ -180,6 +165,13 @@ namespace DefaultNamespace
                     _wallAttachDebounceTimer = 0;
                 }
             }
+            else
+            {
+                foreach (Camera cam in GetComponentsInChildren<Camera>())
+                    cam.enabled = false;
+                foreach (AudioListener audioListener in GetComponentsInChildren<AudioListener>())
+                    audioListener.enabled = false;
+            }
         }
 
         [Client]
@@ -208,47 +200,9 @@ namespace DefaultNamespace
             _move = Vector3.zero;
         }
 
-        [Client]
-        private void FixedUpdate()
-        {
-            if (!isLocalPlayer) return;
-
-            if (_mouseDelta.sqrMagnitude > 0.1f)
-            {
-                // Vertical Rotation
-                // local euler angles 0-360 deg
-                Vector3 camLocalEuler = _camera.transform.localEulerAngles;
-                float appliedVerticalRot = -_mouseDelta.y * Time.deltaTime;
-                float appliedHorizontalRot = _mouseDelta.x * Time.deltaTime;
-
-                float verticalRot = camLocalEuler.x + appliedVerticalRot;
-                if (verticalRot > verticalRotBounds.x && verticalRot < verticalRotBounds.y)
-                {
-                    if (Mathf.Abs(verticalRot - verticalRotBounds.x) < Mathf.Abs(verticalRot - verticalRotBounds.y))
-                        verticalRot = verticalRotBounds.x;
-                    else
-                        verticalRot = verticalRotBounds.y;
-                }
-
-                _camera.transform.localEulerAngles = new Vector3(verticalRot, 0, 0);
-
-                // Horizontal Rotation
-                transform.Rotate(new Vector3(0, appliedHorizontalRot, 0));
-
-                _mouseDelta = Vector2.zero;
-            }
-        }
-
         /**
          * Control Listeners
          */
-        [Client]
-        private void OnLook(Vector2 mouseDelta)
-        {
-            mouseDelta = new Vector2(mouseDelta.x / Screen.width, mouseDelta.y / Screen.height);
-
-            _mouseDelta = mouseDelta;
-        }
 
         [Client]
         private void OnMovementPerformed(Vector2 direction)
@@ -309,21 +263,7 @@ namespace DefaultNamespace
                 JumpToHeight(1);
             }
         }
-
-        [Client]
-        private void LockCursor()
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
-
-        [Client]
-        private void UnlockCursor()
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
-
+        
         [Client]
         private void JumpToHeight(float height)
         {

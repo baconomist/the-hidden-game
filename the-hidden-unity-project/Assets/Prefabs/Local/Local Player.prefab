@@ -83,6 +83,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 216883846976515680}
+  - component: {fileID: 8132473080203317503}
   - component: {fileID: 216883846976515681}
   - component: {fileID: 885880371502162412}
   - component: {fileID: -9195590162540386135}
@@ -111,6 +112,22 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8132473080203317503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 216883846976515686}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73127c01990c417699940bafbe1d72b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  lockCursor: 1
+  verticalRotBounds: {x: 40, y: 270}
 --- !u!114 &216883846976515681
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -126,13 +143,11 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   groundDetectionRadius: 1
-  lockCursor: 1
-  verticalRotBounds: {x: 60, y: 270}
   movementSpeed: 40
   jumpHeight: 10
   enableForwardBoost: 1
   forwardBoostPower: 100
-  enableAttachToWalls: 0
+  enableAttachToWalls: 1
   attachWallDistance: 5
   gravityScale: 10
   friction: {x: 10, y: 0, z: 10}
