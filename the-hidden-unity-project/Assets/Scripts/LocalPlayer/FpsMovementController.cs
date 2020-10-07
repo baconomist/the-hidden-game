@@ -16,21 +16,15 @@ namespace DefaultNamespace
     // 2. Make the Camera the user is going to use as a child and move it to the height you wish. 
     // Escape Key: Escapes the mouse lock
     // Mouse click after pressing escape will lock the mouse again
-
+    
     [RequireComponent(typeof(CharacterController))]
+    [RequireComponent(typeof(FpsControllerState))]
+    [DisallowMultipleComponent]
     public class FpsMovementController : NetworkBehaviour
     {
-        public float groundDetectionRadius = 1;
-
         public float movementSpeed = 2f;
         public float jumpHeight = 10f;
-
-        public bool enableForwardBoost = false;
-        public float forwardBoostPower = 50f;
-
-        public bool enableAttachToWalls = false;
-        public float attachWallDistance = 5;
-
+        
         public float gravityScale = 1.0f;
 
         public Vector3 friction = new Vector3(1, 0, 1);
@@ -50,29 +44,19 @@ namespace DefaultNamespace
         }
         
         private CharacterController _characterController;
-
-        private bool _isGrounded = false;
-        private bool _forwardBoostReady = false;
+        private FpsControllerState _fpsControllerState;
 
         private Vector3 _move;
         private Vector3 _velocity;
-
-        private bool _boostKeyLetGoWhileOnWall = false;
-        private bool _boostKeyHeldDown = false;
-        private bool _isClingingToWall = false;
-
+        
         private Camera _camera;
-
-        private const float _wallAttachDebounceTime = 0.25f;
-        private float _wallAttachDebounceTimer = 0;
-
-        private int _wallAttachCountSinceGround = 0;
 
         public override void OnStartAuthority()
         {
             base.OnStartAuthority();
 
             _characterController = GetComponent<CharacterController>();
+            _fpsControllerState = GetComponent<FpsControllerState>();
 
             foreach (Camera cam in GetComponentsInChildren<Camera>())
                 if (cam.CompareTag(Tags.MainCamera))
@@ -83,9 +67,6 @@ namespace DefaultNamespace
             _inputMaster.FpsController.Movement.performed += (ctx) => OnMovementPerformed(ctx.ReadValue<Vector2>());
             _inputMaster.FpsController.Movement.canceled += (ctx) => OnMovementCancelled();
             _inputMaster.FpsController.Jump.performed += (ctx) => OnJump();
-
-            _inputMaster.FpsController.BoostForward.started += (ctx) => OnBoostKeyDown();
-            _inputMaster.FpsController.BoostForward.canceled += (ctx) => OnBoostKeyUp();
         }
 
         [Client]
@@ -96,29 +77,10 @@ namespace DefaultNamespace
         }
 
         [Client]
-        private void CheckState()
-        {
-            _isGrounded =
-                Physics.CheckSphere(
-                    transform.position - new Vector3(0,
-                        _characterController.height / 2f - _characterController.center.y, 0),
-                    groundDetectionRadius, LayerMask.GetMask(Layers.Ground), QueryTriggerInteraction.Ignore);
-
-            if (_isGrounded)
-                _wallAttachCountSinceGround = 0;
-
-
-            // If on wall, we can boost, otherwise we wait to get grounded
-            _forwardBoostReady = _isGrounded || _isClingingToWall;
-        }
-
-        [Client]
         private void Update()
         {
             if(isLocalPlayer)
             {
-                CheckState();
-
                 if (Mathf.Abs(movementDirection.x) > 0 && Mathf.Abs(_velocity.x) < movementSpeed)
                 {
                     _move += transform.right * (Mathf.Sign(movementDirection.x) * movementSpeed);
@@ -129,40 +91,15 @@ namespace DefaultNamespace
                     _move += transform.forward * (Mathf.Sign(movementDirection.z) * movementSpeed);
                 }
 
-
-                if (!_isClingingToWall)
+                if (!_fpsControllerState.isClingingToWall)
                 {
-                    // Try to cling to a wall
-                    // Can only attach to wall once per jump off ground and when holding shift key down
-                    // Also give a debounce delay to give the player a chance to detach from wall
-                    if (_wallAttachCountSinceGround < 1 && _boostKeyHeldDown &&
-                        _wallAttachDebounceTimer > _wallAttachDebounceTime)
-                    {
-                        Collider[] colliders = Physics.OverlapSphere(transform.position, attachWallDistance,
-                            LayerMask.GetMask(Layers.Collideable));
-                        if (colliders.Length > 0)
-                        {
-                            foreach (Collider col in colliders)
-                            {
-                                if (col.gameObject.CompareTag(Tags.Wall))
-                                {
-                                    _isClingingToWall = true;
-                                    _wallAttachCountSinceGround++;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
                     ApplyTranslationInputs();
-                    _wallAttachDebounceTimer += Time.deltaTime;
                 }
                 else
                 {
                     // Reset velocity so that once we stop clinging, the player doesn't maintain the previous velocity
                     _velocity = Vector3.zero;
                     _move = Vector3.zero;
-                    _wallAttachDebounceTimer = 0;
                 }
             }
             else
@@ -188,7 +125,7 @@ namespace DefaultNamespace
             _characterController.Move(_velocity * Time.deltaTime);
 
             // Apply friction
-            if (_isGrounded)
+            if (_fpsControllerState.isGrounded)
             {
                 _velocity = new Vector3(
                     Mathf.Lerp(_velocity.x, 0, friction.x * Time.deltaTime),
@@ -217,32 +154,9 @@ namespace DefaultNamespace
         }
 
         [Client]
-        private void OnBoostKeyDown()
-        {
-            _boostKeyHeldDown = true;
-            BoostForward();
-
-            if (_boostKeyLetGoWhileOnWall && _isClingingToWall)
-            {
-                _isClingingToWall = false;
-                _boostKeyLetGoWhileOnWall = false;
-            }
-        }
-
-        [Client]
-        private void OnBoostKeyUp()
-        {
-            _boostKeyHeldDown = false;
-            if (!_boostKeyLetGoWhileOnWall && _isClingingToWall)
-            {
-                _boostKeyLetGoWhileOnWall = true;
-            }
-        }
-
-        [Client]
         private void OnJump()
         {
-            if (_isGrounded)
+            if (_fpsControllerState.isGrounded)
             {
                 JumpToHeight(jumpHeight);
             }
@@ -251,21 +165,9 @@ namespace DefaultNamespace
         /**
          * END Control Listeners
          */
-        [Client]
-        private void BoostForward()
-        {
-            CheckYVelocity();
 
-            if (enableForwardBoost && _forwardBoostReady)
-            {
-                _velocity += _camera.transform.forward * forwardBoostPower;
-                // Jump up a little bit
-                JumpToHeight(1);
-            }
-        }
-        
         [Client]
-        private void JumpToHeight(float height)
+        public void JumpToHeight(float height)
         {
             CheckYVelocity();
 
@@ -276,15 +178,20 @@ namespace DefaultNamespace
             float vi = Mathf.Sqrt(-2 * Physics.gravity.y * gravityScale * height);
             _velocity += new Vector3(0, vi, 0);
 
-            _isGrounded = false;
+            _fpsControllerState.isGrounded = false;
         }
 
         [Client]
-        private void CheckYVelocity()
+        public void CheckYVelocity()
         {
             // Reset y velocity if is grounded
-            if (_isGrounded && _velocity.y < 0)
+            if (_fpsControllerState.isGrounded && _velocity.y < 0)
                 _velocity.y = 0;
+        }
+
+        public void AddVelocity(Vector3 velocity)
+        {
+            _velocity += velocity;
         }
     }
 }

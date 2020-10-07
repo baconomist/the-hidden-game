@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace DefaultNamespace
 {
+    [DisallowMultipleComponent]
     public class FpsCameraController : NetworkBehaviour
     {
         public bool lockCursor = true;
