@@ -290,6 +290,10 @@
       <e p="Mirror.Components.csproj" t="IncludeRecursive" />
       <e p="Mirror.csproj" t="IncludeRecursive" />
       <e p="Mirror.Editor.csproj" t="IncludeRecursive" />
+      <e p="Mirror.example.RigidbodyPhysics.csproj" t="IncludeRecursive" />
+      <e p="Mirror.Examples.Cloud.GUI.csproj" t="IncludeRecursive" />
+      <e p="Mirror.Examples.Cloud.Pong.csproj" t="IncludeRecursive" />
+      <e p="Mirror.Examples.csproj" t="IncludeRecursive" />
       <e p="Mirror.Weaver.csproj" t="IncludeRecursive" />
       <e p="Mirror.Websocket.csproj" t="IncludeRecursive" />
       <e p="Ninja.WebSockets.csproj" t="IncludeRecursive" />
