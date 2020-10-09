@@ -30,6 +30,15 @@ ModelImporter:
   - first:
       74: -9137204839868646215
     second: ESC|ReloadCrouching
+  - first:
+      74: -1915699322184355343
+    second: ESC|ReloadCrouched
+  - first:
+      74: -2856787690832836846
+    second: ESC|ShootStanding
+  - first:
+      74: 8469099222373192793
+    second: ESC|ShootCrouched
   externalObjects: {}
   materials:
     materialImportMode: 1
@@ -62,8 +71,8 @@ ModelImporter:
       name: ESC|Idle
       takeName: EcsBody|EcsBodyAction
       internalID: 0
-      firstFrame: 10
-      lastFrame: 122
+      firstFrame: 0
+      lastFrame: 60
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -91,8 +100,8 @@ ModelImporter:
       name: ESC|Walk
       takeName: EcsBody|EcsBodyAction
       internalID: 0
-      firstFrame: 130
-      lastFrame: 207
+      firstFrame: 140
+      lastFrame: 220
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -120,8 +129,8 @@ ModelImporter:
       name: ESC|Run
       takeName: EcsBody|EcsBodyAction
       internalID: 0
-      firstFrame: 248
-      lastFrame: 292
+      firstFrame: 230
+      lastFrame: 280
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -149,8 +158,8 @@ ModelImporter:
       name: ESC|CrouchIdle
       takeName: EcsBody|EcsBodyAction
       internalID: 0
-      firstFrame: 316
-      lastFrame: 425
+      firstFrame: 300
+      lastFrame: 420
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -178,8 +187,8 @@ ModelImporter:
       name: ESC|CrouchWalk
       takeName: EcsBody|EcsBodyAction
       internalID: 0
-      firstFrame: 469
-      lastFrame: 622
+      firstFrame: 480
+      lastFrame: 580
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -207,8 +216,8 @@ ModelImporter:
       name: ESC|ReloadStanding
       takeName: EcsBody|EcsBodyAction
       internalID: 0
-      firstFrame: 702
-      lastFrame: 789
+      firstFrame: 690
+      lastFrame: 780
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -233,11 +242,69 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: ESC|ReloadCrouching
-      takeName: EcsBody|EcsBodyAction
+      name: ESC|ReloadCrouched
+      takeName: ESCBody|EcsBodyAction
       internalID: 0
-      firstFrame: 805
-      lastFrame: 880
+      firstFrame: 790
+      lastFrame: 870
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: ESC|ShootStanding
+      takeName: ESCBody|EcsBodyAction
+      internalID: 0
+      firstFrame: 650
+      lastFrame: 655
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: ESC|ShootCrouched
+      takeName: ESCBody|EcsBodyAction
+      internalID: 0
+      firstFrame: 675
+      lastFrame: 680
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
