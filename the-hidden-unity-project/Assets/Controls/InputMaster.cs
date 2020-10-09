@@ -49,6 +49,22 @@ public class @InputMaster : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""Crouch"",
+                    ""type"": ""Button"",
+                    ""id"": ""d8562925-82df-47e4-a11d-10e71fcd4be1"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""Reload"",
+                    ""type"": ""Button"",
+                    ""id"": ""063189fe-627c-42f4-8d12-05f5441442d2"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -194,6 +210,28 @@ public class @InputMaster : IInputActionCollection, IDisposable
                     ""action"": ""BoostForward"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6ec86e8e-3093-4e1f-b4a6-28516542d876"",
+                    ""path"": ""<Keyboard>/leftCtrl"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Crouch"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f0a7ea14-9099-4781-ac57-959c4b0d7b3b"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Reload"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -269,6 +307,8 @@ public class @InputMaster : IInputActionCollection, IDisposable
         m_FpsController_Movement = m_FpsController.FindAction("Movement", throwIfNotFound: true);
         m_FpsController_Jump = m_FpsController.FindAction("Jump", throwIfNotFound: true);
         m_FpsController_BoostForward = m_FpsController.FindAction("BoostForward", throwIfNotFound: true);
+        m_FpsController_Crouch = m_FpsController.FindAction("Crouch", throwIfNotFound: true);
+        m_FpsController_Reload = m_FpsController.FindAction("Reload", throwIfNotFound: true);
         // TheHiddenAttackController
         m_TheHiddenAttackController = asset.FindActionMap("TheHiddenAttackController", throwIfNotFound: true);
         m_TheHiddenAttackController_PrimaryAttack = m_TheHiddenAttackController.FindAction("Primary Attack", throwIfNotFound: true);
@@ -326,6 +366,8 @@ public class @InputMaster : IInputActionCollection, IDisposable
     private readonly InputAction m_FpsController_Movement;
     private readonly InputAction m_FpsController_Jump;
     private readonly InputAction m_FpsController_BoostForward;
+    private readonly InputAction m_FpsController_Crouch;
+    private readonly InputAction m_FpsController_Reload;
     public struct FpsControllerActions
     {
         private @InputMaster m_Wrapper;
@@ -334,6 +376,8 @@ public class @InputMaster : IInputActionCollection, IDisposable
         public InputAction @Movement => m_Wrapper.m_FpsController_Movement;
         public InputAction @Jump => m_Wrapper.m_FpsController_Jump;
         public InputAction @BoostForward => m_Wrapper.m_FpsController_BoostForward;
+        public InputAction @Crouch => m_Wrapper.m_FpsController_Crouch;
+        public InputAction @Reload => m_Wrapper.m_FpsController_Reload;
         public InputActionMap Get() { return m_Wrapper.m_FpsController; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -355,6 +399,12 @@ public class @InputMaster : IInputActionCollection, IDisposable
                 @BoostForward.started -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnBoostForward;
                 @BoostForward.performed -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnBoostForward;
                 @BoostForward.canceled -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnBoostForward;
+                @Crouch.started -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnCrouch;
+                @Crouch.performed -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnCrouch;
+                @Crouch.canceled -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnCrouch;
+                @Reload.started -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnReload;
+                @Reload.performed -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnReload;
+                @Reload.canceled -= m_Wrapper.m_FpsControllerActionsCallbackInterface.OnReload;
             }
             m_Wrapper.m_FpsControllerActionsCallbackInterface = instance;
             if (instance != null)
@@ -371,6 +421,12 @@ public class @InputMaster : IInputActionCollection, IDisposable
                 @BoostForward.started += instance.OnBoostForward;
                 @BoostForward.performed += instance.OnBoostForward;
                 @BoostForward.canceled += instance.OnBoostForward;
+                @Crouch.started += instance.OnCrouch;
+                @Crouch.performed += instance.OnCrouch;
+                @Crouch.canceled += instance.OnCrouch;
+                @Reload.started += instance.OnReload;
+                @Reload.performed += instance.OnReload;
+                @Reload.canceled += instance.OnReload;
             }
         }
     }
@@ -431,6 +487,8 @@ public class @InputMaster : IInputActionCollection, IDisposable
         void OnMovement(InputAction.CallbackContext context);
         void OnJump(InputAction.CallbackContext context);
         void OnBoostForward(InputAction.CallbackContext context);
+        void OnCrouch(InputAction.CallbackContext context);
+        void OnReload(InputAction.CallbackContext context);
     }
     public interface ITheHiddenAttackControllerActions
     {

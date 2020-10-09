@@ -383,9 +383,11 @@
             <e p="GameManager.cs" t="Include" />
             <e p="Layers.cs" t="Include" />
             <e p="Tags.cs" t="Include" />
+            <e p="TestNetworkManager.cs" t="Include" />
           </e>
           <e p="LocalPlayer" t="Include">
             <e p="AnimatorController.cs" t="Include" />
+            <e p="BasicFpsAnimatorController.cs" t="Include" />
             <e p="FpsCameraController.cs" t="Include" />
             <e p="FpsControllerState.cs" t="Include" />
             <e p="FpsMovementController.cs" t="Include" />

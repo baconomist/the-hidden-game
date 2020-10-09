@@ -7,7 +7,11 @@ namespace DefaultNamespace
 {
     public class NetworkModelManager : NetworkBehaviour
     {
+        public bool debugNetworkModelOnLocal = false;
+
         public bool usingLocalModelByDefault = true;
+
+        public bool IsUsingNetworkModel => !isLocalPlayer || debugNetworkModelOnLocal;
 
         public GameObject localModel;
         public GameObject networkModel;
@@ -15,38 +19,60 @@ namespace DefaultNamespace
         private AnimatorController _animatorController;
         private bool _usingLocalAnimator = false;
 
+        private void OnValidate()
+        {
+            if (IsUsingNetworkModel)
+            {
+                UseNetworkModel();
+            }
+            else
+            {
+                UseLocalModel();
+            }
+        }
+
         private void Awake()
         {
             _animatorController = GetComponent<AnimatorController>();
-            
+
             _usingLocalAnimator = usingLocalModelByDefault;
-            
-            if(_usingLocalAnimator)
+
+            if (_usingLocalAnimator)
                 _animatorController.animator = localModel.GetComponent<Animator>();
             else
                 _animatorController.animator = _animatorController.GetComponent<Animator>();
         }
-        
+
         private void Update()
         {
-            if (isLocalPlayer)
+            if (IsUsingNetworkModel)
             {
-                localModel.SetActive(true);
-                networkModel.SetActive(false);
-
-                if (!_usingLocalAnimator)
-                    _animatorController.animator = localModel.GetComponent<Animator>();
-                _usingLocalAnimator = true;
+                UseNetworkModel();
             }
             else
             {
-                localModel.SetActive(false);
-                networkModel.SetActive(true);
-
-                if (_usingLocalAnimator)
-                    _animatorController.animator = networkModel.GetComponent<Animator>();
-                _usingLocalAnimator = false;
+                UseLocalModel();
             }
+        }
+
+        private void UseLocalModel()
+        {
+            localModel.SetActive(true);
+            networkModel.SetActive(false);
+
+            if (!_usingLocalAnimator)
+                _animatorController.animator = localModel.GetComponent<Animator>();
+            _usingLocalAnimator = true;
+        }
+
+        private void UseNetworkModel()
+        {
+            localModel.SetActive(false);
+            networkModel.SetActive(true);
+
+            if (_usingLocalAnimator)
+                _animatorController.animator = networkModel.GetComponent<Animator>();
+            _usingLocalAnimator = false;
         }
     }
 }
